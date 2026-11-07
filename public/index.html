@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digital Signature System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Exo+2:ital,wght@0,300;0,400;0,500;0,600;1,300&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=password-6">
+</head>
+<body>
+
+<!-- ═══════════════════════════════
+     MOBILE TOP BAR
+════════════════════════════════ -->
+<header id="topbar">
+  <button id="hamburger" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="tb-logo-icon">🔐</div>
+  <div class="tb-title">Digital Signature<br>System</div>
+</header>
+
+<!-- Backdrop (mobile drawer) -->
+<div id="overlay"></div>
+
+<div id="app">
+
+  <!-- ═══════════════════════════════
+       SIDEBAR
+  ════════════════════════════════ -->
+  <aside id="sidebar">
+
+    <!-- Collapse toggle (desktop) -->
+    <button id="sidebar-toggle" title="Collapse sidebar">◀</button>
+
+    <div class="logo-area">
+      <div class="logo-icon">🔐</div>
+      <div class="logo-text">
+        <div class="logo-title">Digital Signature<br>System</div>
+        <div class="logo-sub">v2.0 // Web Edition</div>
+      </div>
+    </div>
+
+    <nav>
+      <div class="nav-section-label">Operations</div>
+      <a class="active" data-tab="keygen" data-tip="Key Generation">
+        <span class="nav-icon">🗝️</span>
+        <span class="nav-label">Key Generation</span>
+      </a>
+      <a data-tab="sign" data-tip="Sign Document">
+        <span class="nav-icon">✍️</span>
+        <span class="nav-label">Sign Document</span>
+      </a>
+      <a data-tab="verify" data-tip="Verify Document">
+        <span class="nav-icon">🔍</span>
+        <span class="nav-label">Verify Document</span>
+      </a>
+
+      <div class="nav-section-label">Analytics</div>
+      <a data-tab="performance" data-tip="Performance">
+        <span class="nav-icon">⚡</span>
+        <span class="nav-label">Performance</span>
+      </a>
+      <a data-tab="audit" data-tip="Audit Log">
+        <span class="nav-icon">📋</span>
+        <span class="nav-label">Audit Log</span>
+        <span class="nav-badge" id="log-count">0</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <span class="status-dot"></span>
+      <span class="status-text">Web Crypto API active</span>
+    </div>
+
+  </aside>
+
+  <!-- ═══════════════════════════════
+       MAIN CONTENT
+  ════════════════════════════════ -->
+  <main id="main">
+
+
+    <!-- ────────────── TAB 1: KEY GENERATION ────────────── -->
+    <section id="tab-keygen" class="section active">
+
+      <div class="section-header">
+        <div class="breadcrumb">DSS // <span>Key Management</span></div>
+        <h1>🗝️ <span class="accent">Key</span> Generation</h1>
+        <p>Generate RSA or ECDSA cryptographic key pairs entirely in-browser using the Web Crypto API. Keys never leave your device.</p>
+      </div>
+
+      <div class="grid-2">
+        <!-- Left -->
+        <div>
+          <div class="card">
+            <div class="card-title">Algorithm Settings</div>
+
+            <div class="form-row">
+              <label>Algorithm</label>
+              <div class="radio-group">
+                <label class="radio-opt"><input type="radio" name="kg-algo" value="RSA" checked onchange="toggleKeySize()"> RSA</label>
+                <label class="radio-opt"><input type="radio" name="kg-algo" value="ECDSA" onchange="toggleKeySize()"> ECDSA</label>
+              </div>
+            </div>
+
+            <div class="form-row" id="rsa-size-row">
+              <label>RSA Key Size</label>
+              <div class="radio-group">
+                <label class="radio-opt"><input type="radio" name="rsa-size" value="1024"> 1024-bit</label>
+                <label class="radio-opt"><input type="radio" name="rsa-size" value="2048" checked> 2048-bit</label>
+                <label class="radio-opt"><input type="radio" name="rsa-size" value="4096"> 4096-bit</label>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <label>Key Label</label>
+              <input type="text" id="kg-label" placeholder="e.g. my-signing-key" value="my-key">
+            </div>
+
+            <div class="form-row">
+              <label for="kg-password">Private Key Password (Optional)</label>
+              <input type="password" id="kg-password" minlength="8" autocomplete="new-password" placeholder="At least 8 characters">
+              <small style="color:var(--muted);font-size:11px">Enter a password to encrypt your private key. You will need it when signing.</small>
+            </div>
+
+            <div style="margin-top:10px">
+              <button class="btn btn-primary" id="kg-btn" onclick="generateKeys()">
+                <span id="kg-btn-icon">⚡</span> Generate Key Pair
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right -->
+        <div>
+          <div class="card">
+            <div class="card-title">Generated Keys</div>
+
+            <div id="kg-result" class="result-box"></div>
+
+            <div id="kg-empty" style="text-align:center;padding:36px 0;color:var(--muted);font-family:var(--font-mono);font-size:12px">
+              No keys generated yet.<br><br>Configure and click<br>
+              <strong style="color:var(--primary)">Generate Key Pair</strong>
+            </div>
+
+            <div class="form-row" id="kg-priv-section" style="display:none">
+              <label>Private Key (PKCS8 PEM)</label>
+              <div class="key-preview" id="kg-priv-preview"></div>
+              <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+                <button class="btn btn-secondary" onclick="downloadKey('private')" style="font-size:12px;padding:7px 14px">⬇ Private Key</button>
+                <button class="btn btn-secondary" onclick="copyKey('private')" style="font-size:12px;padding:7px 14px">📋 Copy</button>
+              </div>
+            </div>
+
+            <div class="sep" id="kg-sep" style="display:none"></div>
+
+            <div class="form-row" id="kg-pub-section" style="display:none">
+              <label>Public Key (SPKI PEM)</label>
+              <div class="key-preview" id="kg-pub-preview"></div>
+              <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+                <button class="btn btn-secondary" onclick="downloadKey('public')" style="font-size:12px;padding:7px 14px">⬇ Public Key</button>
+                <button class="btn btn-secondary" onclick="copyKey('public')" style="font-size:12px;padding:7px 14px">📋 Copy</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ────────────── TAB 2: SIGN DOCUMENT ────────────── -->
+    <section id="tab-sign" class="section">
+
+      <div class="section-header">
+        <div class="breadcrumb">DSS // <span>Document Signing</span></div>
+        <h1>✍️ <span class="accent">Sign</span> Document</h1>
+        <p>Sign any file with your private key. A <code style="color:var(--primary)">.sig</code> JSON file is generated — share it alongside your file and public key.</p>
+      </div>
+
+      <div class="grid-2">
+        <!-- Left -->
+        <div>
+          <div class="card">
+            <div class="card-title">Document to Sign</div>
+            <div class="drop-zone">
+              <input type="file" id="sign-file-input" onchange="handleFileSelect('sign-file', this)">
+              <div class="drop-icon">📄</div>
+              <div class="drop-text"><strong>Click or drag &amp; drop</strong> — any file type</div>
+              <div class="drop-filename" id="sign-file-name"></div>
+            </div>
+            <div id="sign-file-info" style="margin-top:10px;font-family:var(--font-mono);font-size:11px;color:var(--muted);display:none"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Private Key</div>
+            <div class="drop-zone">
+              <input type="file" id="sign-key-input" accept=".pem" onchange="handlePEMSelect('sign-key', this)">
+              <div class="drop-icon">🔑</div>
+              <div class="drop-text"><strong>Upload Private Key</strong> (.pem)</div>
+              <div class="drop-filename" id="sign-key-name"></div>
+            </div>
+            <div style="margin-top:10px">
+              <label>Or paste PEM</label>
+              <textarea id="sign-key-paste" rows="4" placeholder="-----BEGIN PRIVATE KEY-----&#10;...&#10;-----END PRIVATE KEY-----"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right -->
+        <div>
+          <div class="card">
+            <div class="card-title">Signing Options</div>
+
+            <div class="form-row">
+              <label>Algorithm</label>
+              <div class="radio-group">
+                <label class="radio-opt"><input type="radio" name="sign-algo" value="RSA" checked> RSA</label>
+                <label class="radio-opt"><input type="radio" name="sign-algo" value="ECDSA"> ECDSA</label>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <label>Signer Name</label>
+              <input type="text" id="sign-signer" placeholder="e.g. Admin" value="Admin">
+            </div>
+
+            <div class="form-row">
+              <label for="sign-password">Private Key Password</label>
+              <input type="password" id="sign-password" autocomplete="current-password" placeholder="Password used when generating this key">
+            </div>
+
+            <button class="btn btn-primary" id="sign-btn" onclick="doSign()" style="width:100%;justify-content:center;margin-top:8px">
+              <span id="sign-btn-icon">✍️</span> Sign Document
+            </button>
+
+            <div id="sign-result" class="result-box"></div>
+
+            <div id="sign-download" style="display:none;margin-top:14px">
+              <button class="btn btn-secondary" onclick="downloadSig()" style="width:100%;justify-content:center">
+                ⬇ Download .sig File
+              </button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">How it works</div>
+            <div style="font-size:12px;color:var(--muted);line-height:2;font-family:var(--font-mono)">
+              <div><span style="color:var(--primary)">01</span> &nbsp;SHA-256 hash of the file</div>
+              <div><span style="color:var(--primary)">02</span> &nbsp;Hash signed with private key</div>
+              <div><span style="color:var(--primary)">03</span> &nbsp;Signature + metadata → .sig JSON</div>
+              <div><span style="color:var(--primary)">04</span> &nbsp;Share file + .sig + public key</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ────────────── TAB 3: VERIFY ────────────── -->
+    <section id="tab-verify" class="section">
+
+      <div class="section-header">
+        <div class="breadcrumb">DSS // <span>Verification</span></div>
+        <h1>🔍 <span class="accent">Verify</span> Document</h1>
+        <p>Check document authenticity against its signature file. Use <strong style="color:var(--warning)">Tamper Demo</strong> to see detection in action.</p>
+      </div>
+
+      <div class="grid-2">
+        <!-- Left -->
+        <div>
+          <div class="card">
+            <div class="card-title">Original Document</div>
+            <div class="drop-zone">
+              <input type="file" id="ver-file-input" onchange="handleFileSelect('ver-file', this)">
+              <div class="drop-icon">📄</div>
+              <div class="drop-text"><strong>Upload Original File</strong></div>
+              <div class="drop-filename" id="ver-file-name"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Signature File (.sig)</div>
+            <div class="drop-zone">
+              <input type="file" id="ver-sig-input" accept=".sig,.json" onchange="handleSigSelect(this)">
+              <div class="drop-icon">🔏</div>
+              <div class="drop-text"><strong>Upload .sig File</strong></div>
+              <div class="drop-filename" id="ver-sig-name"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Public Key</div>
+            <div class="drop-zone">
+              <input type="file" id="ver-key-input" accept=".pem" onchange="handlePEMSelect('ver-key', this)">
+              <div class="drop-icon">🗝️</div>
+              <div class="drop-text"><strong>Upload Public Key</strong> (.pem)</div>
+              <div class="drop-filename" id="ver-key-name"></div>
+            </div>
+            <div style="margin-top:10px">
+              <textarea id="ver-key-paste" rows="3" placeholder="-----BEGIN PUBLIC KEY-----&#10;...&#10;-----END PUBLIC KEY-----"></textarea>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-primary" id="ver-btn" onclick="doVerify(false)" style="flex:1;justify-content:center">
+              🔍 Verify
+            </button>
+            <button class="btn btn-warning" id="tamper-btn" onclick="doVerify(true)" style="flex:1;justify-content:center">
+              ⚠️ Tamper Demo
+            </button>
+          </div>
+        </div>
+
+        <!-- Right -->
+        <div>
+          <div id="ver-status-box" class="verify-status" style="display:none">
+            <div class="verify-icon" id="ver-icon"></div>
+            <div class="verify-label" id="ver-label"></div>
+            <div class="verify-msg" id="ver-msg"></div>
+            <div class="verify-details" id="ver-details"></div>
+          </div>
+          <div id="ver-placeholder" style="text-align:center;padding:70px 20px;color:var(--muted);font-family:var(--font-mono);font-size:12px;line-height:2">
+            Upload the three files<br>and click<br>
+            <span style="color:var(--primary)">[ Verify Signature ]</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ────────────── TAB 4: PERFORMANCE ────────────── -->
+    <section id="tab-performance" class="section">
+
+      <div class="section-header">
+        <div class="breadcrumb">DSS // <span>Benchmarks</span></div>
+        <h1>⚡ <span class="accent">Performance</span> Comparison</h1>
+        <p>Live benchmark of RSA (2048-bit) vs ECDSA — key generation, signing, and verification — running in your browser.</p>
+      </div>
+
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-title">Test Configuration</div>
+        <div style="display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap">
+          <div style="flex:1;min-width:200px">
+            <div class="form-row">
+              <label>Test File (optional)</label>
+              <div class="drop-zone" style="padding:16px">
+                <input type="file" id="perf-file-input" onchange="handleFileSelect('perf-file', this)">
+                <div class="drop-text"><strong>Upload</strong> or use 32 KB random data</div>
+                <div class="drop-filename" id="perf-file-name"></div>
+              </div>
+            </div>
+          </div>
+          <div style="flex:1;min-width:180px">
+            <div class="form-row">
+              <label>Iterations</label>
+              <select id="perf-iters">
+                <option value="1">1 (fast)</option>
+                <option value="3" selected>3 iterations</option>
+                <option value="5">5 iterations</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" id="perf-btn" onclick="runBenchmark()" style="width:100%;justify-content:center">
+              <span id="perf-btn-icon">⚡</span> Run Benchmark
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div id="perf-stats" class="stats-bar" style="display:none">
+        <div class="stat-card"><div class="stat-num" id="stat-rsa-keygen">—</div><div class="stat-label">RSA Keygen ms</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-ecdsa-keygen">—</div><div class="stat-label">ECDSA Keygen ms</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-rsa-sign">—</div><div class="stat-label">RSA Sign ms</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-ecdsa-sign">—</div><div class="stat-label">ECDSA Sign ms</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Results</div>
+        <div id="perf-progress" style="display:none;padding:24px;text-align:center;color:var(--muted);font-family:var(--font-mono);font-size:12px">
+          <div class="spinner" style="margin:0 auto 12px"></div>
+          <span id="perf-progress-text"></span>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="perf-table">
+            <thead>
+              <tr>
+                <th>Metric</th>
+                <th><span class="chip chip-rsa">RSA 2048</span></th>
+                <th><span class="chip chip-ecdsa">ECDSA</span></th>
+                <th>Winner</th>
+              </tr>
+            </thead>
+            <tbody id="perf-tbody">
+              <tr><td colspan="4" style="text-align:center;color:var(--muted);padding:36px;font-size:12px">No data yet — run the benchmark above.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="perf-note" style="display:none;margin-top:14px;padding:12px 16px;background:rgba(0,200,255,0.05);border-radius:8px;font-family:var(--font-mono);font-size:11px;color:var(--muted);line-height:1.8">
+          <strong style="color:var(--primary)">Key Insight:</strong>
+          ECDSA P-256 provides smaller keys and signatures, with a higher estimated security strength than RSA-2048.
+          Timings vary by hardware and browser crypto engine implementation.
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ────────────── TAB 5: AUDIT LOG ────────────── -->
+    <section id="tab-audit" class="section">
+
+      <div class="section-header">
+        <div class="breadcrumb">DSS // <span>System Logs</span></div>
+        <h1>📋 <span class="accent">Audit</span> Log</h1>
+        <p>Real-time log of all cryptographic operations in this session. In-memory only — clears on refresh.</p>
+      </div>
+
+      <div class="stats-bar">
+        <div class="stat-card"><div class="stat-num" id="total-ops">0</div><div class="stat-label">Total Ops</div></div>
+        <div class="stat-card"><div class="stat-num" id="total-signs">0</div><div class="stat-label">Signed</div></div>
+        <div class="stat-card"><div class="stat-num" id="total-valid">0</div><div class="stat-label">Valid</div></div>
+        <div class="stat-card"><div class="stat-num" id="total-invalid">0</div><div class="stat-label">Invalid</div></div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+          <div class="card-title" style="margin-bottom:0">Terminal Output</div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-secondary" onclick="clearLog()" style="font-size:11px;padding:6px 12px">🗑 Clear</button>
+            <button class="btn btn-secondary" onclick="exportLog()" style="font-size:11px;padding:6px 12px">⬇ Export</button>
+          </div>
+        </div>
+        <div class="terminal" id="audit-terminal">
+          <div class="terminal-empty" id="audit-empty">
+            [ No operations logged yet ]<br>
+            Perform a signing or verification to see entries here.
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ═══════════════════════════════
+     MOBILE BOTTOM NAV
+════════════════════════════════ -->
+<nav id="bottom-nav">
+  <div class="bn-item active" data-tab="keygen">
+    <span class="bn-icon">🗝️</span>Keys
+  </div>
+  <div class="bn-item" data-tab="sign">
+    <span class="bn-icon">✍️</span>Sign
+  </div>
+  <div class="bn-item" data-tab="verify">
+    <span class="bn-icon">🔍</span>Verify
+  </div>
+  <div class="bn-item" data-tab="performance">
+    <span class="bn-icon">⚡</span>Perf
+  </div>
+  <div class="bn-item" data-tab="audit">
+    <span class="bn-icon">📋</span>Log
+    <span class="bn-badge">0</span>
+  </div>
+</nav>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script src="app.js?v=password-6"></script>
+</body>
+</html>
